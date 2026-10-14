@@ -8,6 +8,7 @@ This project is under construction. Phase 1 establishes the local project struct
 - `backend/` - FastAPI application package, backend tests, and ML script area.
 - `supabase/migrations/` - database migrations with schema, constraints, indexes, trigger, and RLS policies.
 - `supabase/seed.sql` - seed categories and products for local development.
+- `docs/` - verification and phase reports.
 - `.github/copilot-instructions.md` - persistent project implementation rules.
 
 ## Local Setup
@@ -66,4 +67,8 @@ Schema summary:
 
 ## Current Status
 
-Phase 2 in progress. The schema migration, trigger, indexes, RLS policies, and seed data are authored. Runtime verification with local Supabase was blocked because Docker's Linux engine could not start on this host (WSL2/virtualization unavailable), so RLS behavior checks were not executed here. Recommendation logic, API routes, frontend features, integration tests, and deployment documentation remain planned for later phases.
+Phase 2 complete and verified against Supabase Cloud (project ref `ffnyvlbjnkvkkexvkgbr`). The schema migration, trigger, indexes, RLS policies, and seed data are applied, and RLS/trigger behavior was tested with real users. Local Supabase verification was not possible on this host because Docker's Linux engine cannot start (WSL2/virtualization unavailable).
+
+See `docs/phase-2-verification.md` for the full verification report, evidence, and the environment deviation.
+
+Phase 3 (recommendation engine), API routes, frontend features, integration tests, and deployment documentation remain planned for later phases.
