@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import catalog, health, interactions, recommendations
+from app.routers import catalog, health, interactions, metrics, recommendations
 
 app = FastAPI(title="E-commerce Recommender API", version="0.2.0")
 
@@ -18,3 +18,4 @@ app.include_router(health.router)
 app.include_router(catalog.router)
 app.include_router(interactions.router)
 app.include_router(recommendations.router)
+app.include_router(metrics.router)

@@ -372,3 +372,100 @@ def test_recommendations_bad_token_is_rejected() -> None:
         assert client.get("/recommendations").status_code == 401
     finally:
         app.dependency_overrides.clear()
+
+
+def test_recommendation_metrics_requires_auth() -> None:
+    app.dependency_overrides.clear()
+    client = TestClient(app)
+    response = client.get("/metrics/recommendations")
+    assert response.status_code == 401
+
+
+def test_recommendation_metrics_summarizes_quality_signals(
+    client_and_store: tuple[TestClient, dict],
+) -> None:
+    client, store = client_and_store
+    store["profiles"] = [{"id": "u1"}, {"id": "u2"}, {"id": "u3"}]
+    store["interactions"] = [
+        {
+            "id": "i1",
+            "user_id": "u1",
+            "product_id": "p1",
+            "interaction_type": "view",
+            "rating": None,
+        },
+        {
+            "id": "i2",
+            "user_id": "u1",
+            "product_id": "p1",
+            "interaction_type": "rating",
+            "rating": 5,
+        },
+        {
+            "id": "i3",
+            "user_id": "u2",
+            "product_id": "p2",
+            "interaction_type": "purchase",
+            "rating": None,
+        },
+        {
+            "id": "i4",
+            "user_id": "u2",
+            "product_id": "inactive",
+            "interaction_type": "add_to_cart",
+            "rating": None,
+        },
+    ]
+    store["products"].append(
+        {
+            "id": "inactive",
+            "category_id": "c1",
+            "name": "Inactive",
+            "description": None,
+            "price": 30.0,
+            "image_url": None,
+            "is_active": False,
+        }
+    )
+    store["recommendations"] = [
+        {
+            "id": "r1",
+            "user_id": "u1",
+            "product_id": "p2",
+            "score": 1.0,
+            "rank": 1,
+            "model_version": "item-cf-v1",
+            "generated_at": "2026-10-18T00:00:00+00:00",
+        },
+        {
+            "id": "r2",
+            "user_id": "u2",
+            "product_id": "p1",
+            "score": 1.0,
+            "rank": 1,
+            "model_version": "old-model",
+            "generated_at": "2026-10-18T00:00:00+00:00",
+        },
+    ]
+
+    response = client.get("/metrics/recommendations")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["model_version"] == "item-cf-v1"
+    assert body["total_products"] == 2
+    assert body["total_users"] == 3
+    assert body["total_interactions"] == 4
+    assert body["interactions_by_type"] == {
+        "view": 1,
+        "click": 0,
+        "add_to_cart": 1,
+        "purchase": 1,
+        "rating": 1,
+    }
+    assert body["users_with_recommendations"] == 1
+    assert body["cold_start_users"] == 1
+    assert body["top_products"] == [
+        {"product_id": "p1", "name": "Alpha", "score": 6.0},
+        {"product_id": "p2", "name": "Beta", "score": 6.0},
+    ]

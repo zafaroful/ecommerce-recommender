@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AuthPanel } from './components/AuthPanel';
+import { MetricsPanel } from './components/MetricsPanel';
 import { ProductCard } from './components/ProductCard';
 import { RecommendationsPanel } from './components/RecommendationsPanel';
 import { useAuth } from './auth/AuthContext';
-import { ApiError, api, type Product, type Recommendation } from './lib/api';
+import { ApiError, api, type Product, type Recommendation, type RecommendationMetrics } from './lib/api';
 
 const REFRESH_DEBOUNCE_MS = 2000;
 
@@ -11,9 +12,11 @@ export function App() {
   const { session } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [metrics, setMetrics] = useState<RecommendationMetrics | null>(null);
   const [modelVersion, setModelVersion] = useState<string | null>(null);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inFlight = useRef(false);
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -64,9 +67,34 @@ export function App() {
     [session],
   );
 
+  const loadMetrics = useCallback(async () => {
+    if (!session) {
+      setMetrics(null);
+      return;
+    }
+    setLoadingMetrics(true);
+    try {
+      const result = await api.getRecommendationMetrics();
+      setMetrics(result);
+      setError(null);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : 'Recommendation metrics are temporarily unavailable. Please try again shortly.',
+      );
+    } finally {
+      setLoadingMetrics(false);
+    }
+  }, [session]);
+
   useEffect(() => {
     void loadRecommendations();
   }, [loadRecommendations]);
+
+  useEffect(() => {
+    void loadMetrics();
+  }, [loadMetrics]);
 
   useEffect(
     () => () => {
@@ -84,6 +112,7 @@ export function App() {
     try {
       await api.recordInteraction(productId, type, rating);
       setError(null);
+      void loadMetrics();
       if (refreshTimer.current) clearTimeout(refreshTimer.current);
       refreshTimer.current = setTimeout(() => void loadRecommendations(true), REFRESH_DEBOUNCE_MS);
     } catch (err) {
@@ -100,7 +129,7 @@ export function App() {
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">Phase 6</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">Phase 7</p>
             <h1 className="text-3xl font-bold tracking-tight">E-commerce Recommender</h1>
           </div>
           <AuthPanel />
@@ -113,13 +142,16 @@ export function App() {
         )}
 
         {session && (
-          <RecommendationsPanel
-            items={recommendations}
-            modelVersion={modelVersion}
-            loading={loadingRecommendations}
-            onSelect={(productId) => void track(productId, 'click')}
-            onRefresh={() => void loadRecommendations(true)}
-          />
+          <>
+            <RecommendationsPanel
+              items={recommendations}
+              modelVersion={modelVersion}
+              loading={loadingRecommendations}
+              onSelect={(productId) => void track(productId, 'click')}
+              onRefresh={() => void loadRecommendations(true)}
+            />
+            <MetricsPanel metrics={metrics} loading={loadingMetrics} />
+          </>
         )}
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">

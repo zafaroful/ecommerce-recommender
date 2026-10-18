@@ -72,3 +72,20 @@ class RecommendationList(BaseModel):
     model_version: str
     generated_at: str | None = None
     items: list[Recommendation]
+
+
+class ProductEngagementMetric(BaseModel):
+    product_id: str
+    name: str
+    score: float
+
+
+class RecommendationMetrics(BaseModel):
+    model_version: str
+    total_products: int
+    total_users: int
+    total_interactions: int
+    interactions_by_type: dict[InteractionType, int]
+    users_with_recommendations: int
+    cold_start_users: int
+    top_products: list[ProductEngagementMetric]

@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+﻿import { supabase } from './supabase';
 
 export type InteractionType = 'view' | 'click' | 'add_to_cart' | 'purchase' | 'rating';
 
@@ -31,6 +31,23 @@ export interface RecommendationList {
   model_version: string;
   generated_at: string | null;
   items: Recommendation[];
+}
+
+export interface ProductEngagementMetric {
+  product_id: string;
+  name: string;
+  score: number;
+}
+
+export interface RecommendationMetrics {
+  model_version: string;
+  total_products: number;
+  total_users: number;
+  total_interactions: number;
+  interactions_by_type: Record<InteractionType, number>;
+  users_with_recommendations: number;
+  cold_start_users: number;
+  top_products: ProductEngagementMetric[];
 }
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -78,6 +95,7 @@ export const api = {
   listProducts: () => request<Product[]>('/products'),
   getRecommendations: (refresh = false) =>
     request<RecommendationList>(`/recommendations${refresh ? '?refresh=true' : ''}`),
+  getRecommendationMetrics: () => request<RecommendationMetrics>('/metrics/recommendations'),
   recordInteraction: (productId: string, type: InteractionType, rating?: number) =>
     request('/interactions', {
       method: 'POST',
@@ -88,3 +106,6 @@ export const api = {
       }),
     }),
 };
+
+
+
