@@ -1,6 +1,6 @@
 # Phase 4 Proposal - Hardening And Deployment Readiness
 
-Status: Proposed (not started). Requires explicit approval before implementation.
+Status: Implemented. Approved by the user request to begin Phase 4.
 Date: 2026-10-18
 
 ## Purpose
@@ -10,8 +10,8 @@ hardening and deployment-readiness phase: it closes the concrete gaps recorded i
 the Phase 3 review and report, adds pagination and configuration safety, and
 documents how to deploy and operate the system.
 
-This document is a proposal. It defines the intended scope so it can be approved,
-adjusted, or replaced with the project's own Phase 4 specification.
+This document began as the Phase 4 proposal and now records the implemented
+scope. See `docs/deployment.md` for deployment operations.
 
 ## Guiding Constraints
 
@@ -121,7 +121,8 @@ From `.github/copilot-instructions.md`:
 3. Any Phase 4 requirements from the original project spec that differ from this
    proposal?
 
-## Stop Point
+## Completion Evidence
 
-Implementation of Phase 4 should not begin without explicit approval of this
-scope (or a replacement specification).
+- `python -m pytest` - passed, 42 tests.
+- `python -m ruff check .` - passed.
+- `npm run build` - passed.

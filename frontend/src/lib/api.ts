@@ -16,7 +16,6 @@ export interface Product {
   description: string | null;
   price: number;
   image_url: string | null;
-  is_active: boolean;
 }
 
 export interface Recommendation {
@@ -35,6 +34,19 @@ export interface RecommendationList {
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
+export class ApiError extends Error {
+  constructor(message = 'The request could not be completed. Please try again.') {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+function logRequestFailure(path: string, error: unknown) {
+  if (import.meta.env.DEV) {
+    console.error(`API request failed for ${path}`, error);
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set('Content-Type', 'application/json');
@@ -44,10 +56,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers.set('Authorization', `Bearer ${data.session.access_token}`);
   }
 
-  const response = await fetch(`${baseUrl}${path}`, { ...init, headers });
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, { ...init, headers });
+  } catch (error) {
+    logRequestFailure(path, error);
+    throw new ApiError('Unable to reach the recommendation service. Check your connection.');
+  }
+
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`Request failed (${response.status}): ${detail}`);
+    logRequestFailure(path, { status: response.status, detail });
+    throw new ApiError();
   }
   return (await response.json()) as T;
 }

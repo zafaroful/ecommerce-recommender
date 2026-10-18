@@ -1,6 +1,6 @@
 # E-commerce Recommendation System
 
-This project is under construction. Phase 1 establishes the local project structure for a React frontend, FastAPI backend, Supabase schema work, and recommendation ML scripts. Phase 2 delivers the database schema and authentication. Phase 3 delivers the recommendation engine, API routes, and frontend features.
+This project is under construction. Phase 1 establishes the local project structure for a React frontend, FastAPI backend, Supabase schema work, and recommendation ML scripts. Phase 2 delivers the database schema and authentication. Phase 3 delivers the recommendation engine, API routes, and frontend features. Phase 4 hardens the API, configuration, frontend error handling, offline job operation, and deployment documentation.
 
 ## Structure
 
@@ -67,13 +67,13 @@ Schema summary:
 
 ## Current Status
 
-Phases 1-3 are implemented. Phase 2 is verified against Supabase Cloud (project ref `ffnyvlbjnkvkkexvkgbr`); the schema migration, trigger, indexes, RLS policies, and seed data are applied, and RLS/trigger behavior was tested with real users. Phase 3 adds an item-item collaborative-filtering engine (`item-cf-v1`) with a popularity fallback, FastAPI routes (`/health`, `/categories`, `/products`, `/interactions`, `/recommendations`), and a React frontend for catalogue browsing, interaction tracking, and recommendations.
+Phases 1-4 are implemented. Phase 2 is verified against Supabase Cloud (project ref `ffnyvlbjnkvkkexvkgbr`); the schema migration, trigger, indexes, RLS policies, and seed data are applied, and RLS/trigger behavior was tested with real users. Phase 3 adds an item-item collaborative-filtering engine (`item-cf-v1`) with a popularity fallback, FastAPI routes (`/health`, `/categories`, `/products`, `/interactions`, `/recommendations`), and a React frontend for catalogue browsing, interaction tracking, and recommendations. Phase 4 adds bounded pagination for list endpoints, stricter CORS/config validation, safer frontend error messages, dry-run/confirmation flags for the offline job, and deployment documentation.
 
 Local Supabase verification was not possible on this host because Docker's Linux engine cannot start (WSL2/virtualization unavailable); verification uses Supabase Cloud.
 
 Authentication note: the Supabase Cloud project issues **ES256** user JWTs. The backend verifies them against the project JWKS (`app/auth.py`) and keeps symmetric HS256 as a fallback for legacy/local projects.
 
-See `docs/phase-2-verification.md` and `docs/phase-3-verification.md` for the full verification reports, evidence, and environment deviations.
+See `docs/phase-2-verification.md`, `docs/phase-3-verification.md`, `docs/phase-4-verification.md`, and `docs/deployment.md` for verification reports, evidence, environment deviations, and deployment operations.
 
 ## Backend API
 
@@ -85,10 +85,18 @@ Set-Location -LiteralPath "backend"
 python -m uvicorn app.main:app --reload
 ```
 
+Preview recommendations offline without writes:
+
+```powershell
+python -m ml.generate_recommendations --dry-run
+```
+
 Generate recommendations for every user offline:
 
 ```powershell
-python -m ml.generate_recommendations
+python -m ml.generate_recommendations --confirm-write
 ```
 
-Remaining work for later phases: integration test hardening (including an ES256 unit test) and deployment documentation.
+## Deployment And Operations
+
+Deployment guidance is in `docs/deployment.md`. Keep backend-only secrets out of frontend hosting, configure exact `CORS_ORIGINS`, run `supabase db push` before release, and schedule `python -m ml.generate_recommendations --confirm-write` only on trusted backend infrastructure.

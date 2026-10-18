@@ -1,10 +1,17 @@
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from supabase import Client
 
 from app.auth import AuthenticatedUser, get_current_user
-from app.schemas import Interaction, InteractionCreate
+from app.schemas import (
+    DEFAULT_PAGE_LIMIT,
+    INTERACTION_FIELDS,
+    MAX_PAGE_LIMIT,
+    Interaction,
+    InteractionCreate,
+    InteractionListItem,
+)
 from app.supabase_client import get_supabase_client
 
 router = APIRouter(tags=["interactions"])
@@ -54,16 +61,20 @@ def create_interaction(
     return Interaction(**response.data[0])
 
 
-@router.get("/interactions", response_model=list[Interaction])
+@router.get("/interactions", response_model=list[InteractionListItem])
 def list_interactions(
+    limit: int = Query(default=DEFAULT_PAGE_LIMIT, ge=1),
+    offset: int = Query(default=0, ge=0),
     user: AuthenticatedUser = Depends(get_current_user),
     client: Client = Depends(get_supabase_client),
-) -> list[Interaction]:
+) -> list[InteractionListItem]:
+    safe_limit = min(limit, MAX_PAGE_LIMIT)
     response = (
         client.table("interactions")
-        .select("*")
+        .select(INTERACTION_FIELDS)
         .eq("user_id", user.id)
         .order("created_at", desc=True)
+        .range(offset, offset + safe_limit - 1)
         .execute()
     )
-    return [Interaction(**row) for row in response.data or []]
+    return [InteractionListItem(**row) for row in response.data or []]

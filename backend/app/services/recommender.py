@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 
 from supabase import Client
 
+from app.schemas import PRODUCT_FIELDS
 from ml.engine import (
     MODEL_VERSION,
     InteractionRecord,
@@ -129,5 +130,5 @@ def load_stored_recommendations(client: Client, user_id: str) -> list[dict]:
 def load_products_by_ids(client: Client, product_ids: list[str]) -> dict[str, dict]:
     if not product_ids:
         return {}
-    response = client.table("products").select("*").in_("id", product_ids).execute()
+    response = client.table("products").select(PRODUCT_FIELDS).in_("id", product_ids).execute()
     return {row["id"]: row for row in response.data or []}
