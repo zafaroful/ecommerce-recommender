@@ -1,6 +1,6 @@
 # E-commerce Recommendation System
 
-This project is under construction. Phase 1 establishes the local project structure for a React frontend, FastAPI backend, Supabase schema work, and recommendation ML scripts.
+This project is under construction. Phase 1 establishes the local project structure for a React frontend, FastAPI backend, Supabase schema work, and recommendation ML scripts. Phase 2 delivers the database schema and authentication. Phase 3 delivers the recommendation engine, API routes, and frontend features.
 
 ## Structure
 
@@ -40,7 +40,7 @@ Only example environment files are committed. Real `.env` files are ignored.
 
 ## Database
 
-The initial schema lives in `supabase/migrations/20261014120000_initial_schema.sql` and seed data in `supabase/seed.sql`.
+The initial schema lives in `supabase/migrations/20261014120000_initial_schema.sql`, the atomic recommendation-replace function in `supabase/migrations/20261014130000_replace_recommendations_rpc.sql`, and seed data in `supabase/seed.sql`.
 
 Apply locally (requires Docker with a working Linux engine):
 
@@ -67,8 +67,28 @@ Schema summary:
 
 ## Current Status
 
-Phase 2 complete and verified against Supabase Cloud (project ref `ffnyvlbjnkvkkexvkgbr`). The schema migration, trigger, indexes, RLS policies, and seed data are applied, and RLS/trigger behavior was tested with real users. Local Supabase verification was not possible on this host because Docker's Linux engine cannot start (WSL2/virtualization unavailable).
+Phases 1-3 are implemented. Phase 2 is verified against Supabase Cloud (project ref `ffnyvlbjnkvkkexvkgbr`); the schema migration, trigger, indexes, RLS policies, and seed data are applied, and RLS/trigger behavior was tested with real users. Phase 3 adds an item-item collaborative-filtering engine (`item-cf-v1`) with a popularity fallback, FastAPI routes (`/health`, `/categories`, `/products`, `/interactions`, `/recommendations`), and a React frontend for catalogue browsing, interaction tracking, and recommendations.
 
-See `docs/phase-2-verification.md` for the full verification report, evidence, and the environment deviation.
+Local Supabase verification was not possible on this host because Docker's Linux engine cannot start (WSL2/virtualization unavailable); verification uses Supabase Cloud.
 
-Phase 3 (recommendation engine), API routes, frontend features, integration tests, and deployment documentation remain planned for later phases.
+Authentication note: the Supabase Cloud project issues **ES256** user JWTs. The backend verifies them against the project JWKS (`app/auth.py`) and keeps symmetric HS256 as a fallback for legacy/local projects.
+
+See `docs/phase-2-verification.md` and `docs/phase-3-verification.md` for the full verification reports, evidence, and environment deviations.
+
+## Backend API
+
+Run locally (requires `backend/.env` with `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`, `CORS_ORIGINS`):
+
+```powershell
+Set-Location -LiteralPath "backend"
+.\.venv\Scripts\Activate.ps1
+python -m uvicorn app.main:app --reload
+```
+
+Generate recommendations for every user offline:
+
+```powershell
+python -m ml.generate_recommendations
+```
+
+Remaining work for later phases: integration test hardening (including an ES256 unit test) and deployment documentation.
