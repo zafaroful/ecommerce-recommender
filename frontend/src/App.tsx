@@ -75,10 +75,14 @@ export function App() {
     [],
   );
 
-  async function track(productId: string, type: 'view' | 'click' | 'add_to_cart') {
+  async function track(
+    productId: string,
+    type: 'view' | 'click' | 'add_to_cart' | 'purchase' | 'rating',
+    rating?: number,
+  ) {
     if (!session) return;
     try {
-      await api.recordInteraction(productId, type);
+      await api.recordInteraction(productId, type, rating);
       setError(null);
       if (refreshTimer.current) clearTimeout(refreshTimer.current);
       refreshTimer.current = setTimeout(() => void loadRecommendations(true), REFRESH_DEBOUNCE_MS);
@@ -96,7 +100,7 @@ export function App() {
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">Phase 4</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">Phase 5</p>
             <h1 className="text-3xl font-bold tracking-tight">E-commerce Recommender</h1>
           </div>
           <AuthPanel />
@@ -133,6 +137,9 @@ export function App() {
                 product={product}
                 onSelect={(p) => void track(p.id, 'view')}
                 onAddToCart={(p) => void track(p.id, 'add_to_cart')}
+                onPurchase={(p) => void track(p.id, 'purchase')}
+                onRate={(p, rating) => void track(p.id, 'rating', rating)}
+                disabledActions={!session}
               />
             ))}
           </div>

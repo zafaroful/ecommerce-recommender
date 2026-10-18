@@ -232,6 +232,27 @@ def test_create_interaction_ok(client_and_store: tuple[TestClient, dict]) -> Non
     assert store["interactions"][0]["product_id"] == "p1"
 
 
+def test_create_rating_interaction_ok(client_and_store: tuple[TestClient, dict]) -> None:
+    client, store = client_and_store
+    response = client.post(
+        "/interactions",
+        json={"product_id": "p1", "interaction_type": "rating", "rating": 5},
+    )
+    assert response.status_code == 201
+    assert response.json()["rating"] == 5
+    assert store["interactions"][0]["interaction_type"] == "rating"
+
+
+def test_create_purchase_interaction_ok(client_and_store: tuple[TestClient, dict]) -> None:
+    client, store = client_and_store
+    response = client.post(
+        "/interactions", json={"product_id": "p1", "interaction_type": "purchase"}
+    )
+    assert response.status_code == 201
+    assert response.json()["interaction_type"] == "purchase"
+    assert store["interactions"][0]["rating"] is None
+
+
 def test_list_interactions_paginates_and_projects_fields(
     client_and_store: tuple[TestClient, dict],
 ) -> None:
