@@ -73,7 +73,7 @@ Local Supabase verification was not possible on this host because Docker's Linux
 
 Authentication note: the Supabase Cloud project issues **ES256** user JWTs. The backend verifies them against the project JWKS (`app/auth.py`) and keeps symmetric HS256 as a fallback for legacy/local projects.
 
-See `docs/phase-2-verification.md`, `docs/phase-3-verification.md`, `docs/phase-4-verification.md`, and `docs/deployment.md` for verification reports, evidence, environment deviations, and deployment operations.
+See `docs/phase-2-verification.md`, `docs/phase-3-verification.md`, `docs/phase-4-verification.md`, `docs/deployment.md`, and `docs/deployment-rehearsal.md` for verification reports, evidence, environment deviations, deployment operations, and the pre-Phase-5 rehearsal outcome.
 
 ## Backend API
 
