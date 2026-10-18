@@ -24,9 +24,11 @@ def get_recommendations(
         stored = recommender.load_stored_recommendations(client, user.id)
 
     stored = stored[:limit]
+    product_ids = [row["product_id"] for row in stored]
     products = recommender.load_products_by_ids(
-        client, [row["product_id"] for row in stored]
+        client, product_ids
     )
+    reasons = recommender.recommendation_reasons(client, user.id, product_ids)
 
     items = [
         Recommendation(
@@ -34,6 +36,7 @@ def get_recommendations(
             score=row["score"],
             rank=row["rank"],
             model_version=row["model_version"],
+            reason=reasons.get(row["product_id"], "Recommended for you."),
             product=Product(**products[row["product_id"]])
             if row["product_id"] in products
             else None,

@@ -316,6 +316,7 @@ def test_recommendations_persist_and_return(client_and_store: tuple[TestClient, 
     body = response.json()
     assert body["model_version"] == "item-cf-v1"
     assert body["items"]
+    assert body["items"][0]["reason"]
     assert store["recommendations"]
 
 
@@ -352,6 +353,7 @@ def test_interaction_to_recommendations_flow_through_api(
     assert recommendations.status_code == 200
     items = recommendations.json()["items"]
     assert [item["product_id"] for item in items] == ["p2"]
+    assert items[0]["reason"] == "Similar to 1 item you interacted with."
     assert store["recommendations"][0]["user_id"] == "u1"
 
 

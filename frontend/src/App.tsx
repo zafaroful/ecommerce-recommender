@@ -100,7 +100,7 @@ export function App() {
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">Phase 5</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">Phase 6</p>
             <h1 className="text-3xl font-bold tracking-tight">E-commerce Recommender</h1>
           </div>
           <AuthPanel />

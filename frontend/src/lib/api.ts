@@ -23,6 +23,7 @@ export interface Recommendation {
   score: number;
   rank: number;
   model_version: string;
+  reason: string;
   product: Product | null;
 }
 

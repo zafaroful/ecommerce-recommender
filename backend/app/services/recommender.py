@@ -11,6 +11,8 @@ from ml.engine import (
     MODEL_VERSION,
     InteractionRecord,
     ScoredProduct,
+    build_item_similarity,
+    build_user_item_weights,
     generate_recommendations,
 )
 
@@ -132,3 +134,47 @@ def load_products_by_ids(client: Client, product_ids: list[str]) -> dict[str, di
         return {}
     response = client.table("products").select(PRODUCT_FIELDS).in_("id", product_ids).execute()
     return {row["id"]: row for row in response.data or []}
+
+
+def recommendation_reasons(
+    client: Client, user_id: str, product_ids: list[str]
+) -> dict[str, str]:
+    if not product_ids:
+        return {}
+
+    interactions = _load_interactions(client)
+    active_product_ids, product_category = _load_active_products(client)
+    user_item_weights = build_user_item_weights(interactions)
+    user_weights = user_item_weights.get(user_id, {})
+    similarity = build_item_similarity(user_item_weights) if user_weights else {}
+
+    reasons: dict[str, str] = {}
+    preferred_category = None
+    if user_weights:
+        category_counts: dict[str, float] = {}
+        for seen_product_id, weight in user_weights.items():
+            category = product_category.get(seen_product_id)
+            if category:
+                category_counts[category] = category_counts.get(category, 0.0) + weight
+        if category_counts:
+            preferred_category = max(sorted(category_counts), key=category_counts.get)
+
+    for product_id in product_ids:
+        if product_id not in active_product_ids:
+            reasons[product_id] = "Previously recommended item."
+            continue
+
+        similar_seen_count = sum(
+            1
+            for seen_product_id in user_weights
+            if product_id in similarity.get(seen_product_id, {})
+        )
+        if similar_seen_count:
+            label = "item" if similar_seen_count == 1 else "items"
+            reasons[product_id] = f"Similar to {similar_seen_count} {label} you interacted with."
+        elif preferred_category and product_category.get(product_id) == preferred_category:
+            reasons[product_id] = "Popular in a category you engage with."
+        else:
+            reasons[product_id] = "Popular with other shoppers."
+
+    return reasons

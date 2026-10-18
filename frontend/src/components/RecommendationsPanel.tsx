@@ -47,9 +47,12 @@ export function RecommendationsPanel({
               onClick={() => onSelect(item.product_id)}
               className="flex w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-950/60 px-4 py-3 text-left transition hover:border-cyan-400"
             >
-              <span className="text-slate-100">
-                <span className="mr-2 text-slate-500">#{item.rank}</span>
-                {item.product?.name ?? item.product_id}
+              <span>
+                <span className="block text-slate-100">
+                  <span className="mr-2 text-slate-500">#{item.rank}</span>
+                  {item.product?.name ?? item.product_id}
+                </span>
+                <span className="mt-1 block text-xs text-slate-400">{item.reason}</span>
               </span>
               <span className="text-sm text-cyan-300">score {item.score.toFixed(2)}</span>
             </button>

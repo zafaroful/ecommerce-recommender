@@ -64,6 +64,7 @@ class Recommendation(BaseModel):
     score: float
     rank: int
     model_version: str
+    reason: str
     product: Product | None = None
 
 

@@ -83,3 +83,29 @@ def test_store_recommendations_uses_atomic_rpc() -> None:
     stored_again = client.store["recommendations"]
     assert len(stored_again) == 1
     assert stored_again[0]["rank"] == 1
+
+
+def test_recommendation_reasons_explain_cf_and_popularity() -> None:
+    store = _store()
+    store["interactions"].append(
+        {
+            "id": "x3",
+            "user_id": "u1",
+            "product_id": "p1",
+            "interaction_type": "view",
+            "rating": None,
+        }
+    )
+    client = FakeClient(store)
+
+    reasons = recommender.recommendation_reasons(client, "u1", ["p2"])
+
+    assert reasons["p2"] == "Similar to 1 item you interacted with."
+
+
+def test_recommendation_reasons_explain_cold_start() -> None:
+    client = FakeClient(_store())
+
+    reasons = recommender.recommendation_reasons(client, "new-user", ["p1"])
+
+    assert reasons["p1"] == "Popular with other shoppers."
