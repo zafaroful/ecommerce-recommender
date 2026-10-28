@@ -97,6 +97,14 @@ Generate recommendations for every user offline:
 python -m ml.generate_recommendations --confirm-write
 ```
 
+Evaluate the recommender offline (MovieLens 100K, time-based split, vs. popularity baseline):
+
+```powershell
+python -m ml.evaluate
+```
+
+Results are written to `docs/evaluation-results.md`.
+
 ## Deployment And Operations
 
 Deployment guidance is in `docs/deployment.md`. Keep backend-only secrets out of frontend hosting, configure exact `CORS_ORIGINS`, run `supabase db push` before release, and schedule `python -m ml.generate_recommendations --confirm-write` only on trusted backend infrastructure.
