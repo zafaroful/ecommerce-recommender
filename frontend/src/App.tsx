@@ -134,7 +134,7 @@ export function App() {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
           <h1 className="text-xl font-bold tracking-tight">
-            Reco<span className="text-indigo-600">Shop</span>
+            Recom<span className="text-indigo-600">ify</span>
           </h1>
           <AuthPanel />
         </div>
