@@ -18,6 +18,7 @@ export function App() {
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
   const inFlight = useRef(false);
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -124,46 +125,86 @@ export function App() {
     }
   }
 
-  return (
-    <main className="min-h-screen bg-slate-950 px-6 py-12 text-slate-100">
-      <div className="mx-auto flex max-w-5xl flex-col gap-8">
-        <header className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">Phase 7</p>
-            <h1 className="text-3xl font-bold tracking-tight">E-commerce Recommender</h1>
-          </div>
-          <AuthPanel />
-        </header>
+  const visibleProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(query.trim().toLowerCase()),
+  );
 
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+          <h1 className="text-xl font-bold tracking-tight">
+            Reco<span className="text-indigo-600">Shop</span>
+          </h1>
+          <AuthPanel />
+        </div>
+      </header>
+
+      <main className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-8">
         {error && (
-          <p className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
-            {error}
+          <p
+            role="alert"
+            className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"
+          >
+            {error} If this keeps happening, the server may be waking up. Wait about a minute and
+            refresh the page.
           </p>
         )}
 
-        {session && (
-          <>
-            <RecommendationsPanel
-              items={recommendations}
-              modelVersion={modelVersion}
-              loading={loadingRecommendations}
-              onSelect={(productId) => void track(productId, 'click')}
-              onRefresh={() => void loadRecommendations(true)}
-            />
-            <MetricsPanel metrics={metrics} loading={loadingMetrics} />
-          </>
+        {!session && (
+          <section className="rounded-2xl border border-indigo-100 bg-indigo-50 p-6">
+            <h2 className="text-lg font-semibold text-indigo-900">Get picks made for you</h2>
+            <p className="mt-1 text-sm text-indigo-900">
+              Sign in or create an account, then add products to your cart, buy or rate them. The
+              recommender learns from your activity.
+            </p>
+          </section>
         )}
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-          <h2 className="mb-4 text-xl font-semibold text-slate-100">Catalogue</h2>
-          {loadingProducts && <p className="text-sm text-slate-400">Loading catalogue…</p>}
+        {session && (
+          <RecommendationsPanel
+            items={recommendations}
+            modelVersion={modelVersion}
+            loading={loadingRecommendations}
+            onSelect={(productId) => void track(productId, 'click')}
+            onRefresh={() => void loadRecommendations(true)}
+          />
+        )}
+
+        <section className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-2xl font-semibold text-slate-900">Catalogue</h2>
+            <div>
+              <label htmlFor="catalogue-search" className="sr-only">
+                Search products
+              </label>
+              <input
+                id="catalogue-search"
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search products"
+                className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-500 sm:w-64"
+              />
+            </div>
+          </div>
+
+          {loadingProducts && (
+            <p className="text-sm text-slate-600">
+              Loading catalogue… the first load can take up to a minute while the server wakes up.
+            </p>
+          )}
           {!loadingProducts && products.length === 0 && (
-            <p className="rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+            <p className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
               Catalogue data is unavailable right now. Check the API connection and try again.
             </p>
           )}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
+          {!loadingProducts && products.length > 0 && visibleProducts.length === 0 && (
+            <p className="text-sm text-slate-600">No products match “{query}”.</p>
+          )}
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {visibleProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -176,7 +217,9 @@ export function App() {
             ))}
           </div>
         </section>
-      </div>
-    </main>
+
+        {session && <MetricsPanel metrics={metrics} loading={loadingMetrics} />}
+      </main>
+    </div>
   );
 }
