@@ -5,10 +5,12 @@ import { ProductCard } from './components/ProductCard';
 import { RecommendationsPanel } from './components/RecommendationsPanel';
 import { useAuth } from './auth/AuthContext';
 import { ApiError, api, type Product, type Recommendation, type RecommendationMetrics } from './lib/api';
+import { CurrencyProvider } from './currency/CurrencyContext';
+import { CurrencyToggle } from './currency/CurrencyToggle';
 
 const REFRESH_DEBOUNCE_MS = 2000;
 
-export function App() {
+function AppContent() {
   const { session } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
@@ -136,7 +138,10 @@ export function App() {
           <h1 className="text-xl font-bold tracking-tight">
             Recom<span className="text-indigo-600">ify</span>
           </h1>
-          <AuthPanel />
+          <div className="flex flex-wrap items-center gap-3">
+            <CurrencyToggle />
+            <AuthPanel />
+        </div>
         </div>
       </header>
 
@@ -221,5 +226,12 @@ export function App() {
         {session && <MetricsPanel metrics={metrics} loading={loadingMetrics} />}
       </main>
     </div>
+  );
+}
+export function App() {
+  return (
+    <CurrencyProvider>
+      <AppContent />
+    </CurrencyProvider>
   );
 }

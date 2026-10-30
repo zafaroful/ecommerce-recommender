@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useCurrency } from '../currency/CurrencyContext';
 import type { Product } from '../lib/api';
 
 interface ProductCardProps {
@@ -23,6 +24,7 @@ export function ProductCard({
   const [added, setAdded] = useState(false);
   const [purchased, setPurchased] = useState(false);
   const [rated, setRated] = useState(0);
+  const { formatPrice } = useCurrency();
 
   const tileColor = TILE_COLORS[product.name.charCodeAt(0) % TILE_COLORS.length];
 
@@ -56,7 +58,7 @@ export function ProductCard({
         <p className="mt-1 line-clamp-2 text-sm text-slate-600">{product.description}</p>
       </button>
 
-      <span className="text-lg font-bold text-slate-900">${product.price.toFixed(2)}</span>
+      <span className="text-lg font-bold text-slate-900">{formatPrice(product.price)}</span>
 
       <div className="flex gap-2">
         <button
